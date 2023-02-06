@@ -45,7 +45,8 @@ MAX_SECTION_LEN = 500
 SEPARATOR = "\n* "
 ENCODING = "cl100k_base"  # encoding for text-embedding-ada-002
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key_path = 'api.txt'
 print(openai.api_key)
 header = """Answer the question as truthfully as possible using the provided context, \
 and include the parts of the context that are used to generate the answer after the answer starting with "\nRef:". \
