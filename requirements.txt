@@ -1,0 +1,10 @@
+streamlit
+st-annotated-text
+streamlit-authenticator
+streamlit-custom-notification-box
+st-clickable-images
+farm-haystack[ocr,crawler]
+webdriver_manager
+openai
+tiktoken
+tenacity
