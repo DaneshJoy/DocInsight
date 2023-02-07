@@ -4,5 +4,5 @@
 chcp 65001 >NUL
 
 CALL conda activate deploy
-streamlit run "🤖_Doc_Chat.py"
+streamlit run "1_👁‍🗨_Doc_Insight.py"
 PAUSE

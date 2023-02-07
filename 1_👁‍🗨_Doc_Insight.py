@@ -47,7 +47,7 @@ ENCODING = "cl100k_base"  # encoding for text-embedding-ada-002
 
 # openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.api_key_path = 'api.txt'
-print(openai.api_key)
+# print(openai.api_key)
 header = """Answer the question as truthfully as possible using the provided context, \
 and include the parts of the context that are used to generate the answer after the answer starting with "\nRef:". \
 If the answer is not contained within the text below, say "I don't know."\n\nContext:\n"""
@@ -112,12 +112,13 @@ def construct_prompt(question: str, df: pd.DataFrame) -> str:
 
     # Useful diagnostic information
     print(f"Selected {len(chosen_sections)} document sections:")
-    print("\n".join(chosen_sections_indexes))
+    # print("\n".join(chosen_sections_indexes))
 
-    return header + "".join(chosen_sections) + "\n\n Q: " + question + "\n A:", contents
+    return (header + "".join(chosen_sections) + "\n\n Q: " + question + "\n A:",
+            scores, contents)
 
 
-@st.cache(suppress_st_warning=True)
+@st.cache(suppress_st_warning=True, show_spinner=False)
 def answer_query_with_context(
         query: str,
         df: pd.DataFrame,
@@ -125,7 +126,7 @@ def answer_query_with_context(
 ) -> str:
 
     with st.spinner('Finding related docs...'):
-        prompt, contents = construct_prompt(query, df)
+        prompt, scores, contents = construct_prompt(query, df)
 
     if show_prompt:
         print(prompt)
@@ -136,7 +137,7 @@ def answer_query_with_context(
                 **COMPLETIONS_API_PARAMS
         )
 
-    return response["choices"][0]["text"].strip(" \n"), contents
+    return response["choices"][0]["text"].strip(" \n"), scores, contents
 
 
 # @st.cache(suppress_st_warning=True)
@@ -176,12 +177,11 @@ def main():
         print('Q:', question_text)
         # if clicked or question_text:
         if clicked and question_text:
-            print('clicked')
             with st.spinner('Preparing Dataset...'):
                 dataset_path = os.path.join(os.getcwd(), 'users', st.session_state["username"], 'processed_docs.csv')
                 df = get_doc_dataset(dataset_path)
 
-            full_ans, contents = answer_query_with_context(question_text, df)
+            full_ans, scores, contents = answer_query_with_context(question_text, df)
             ans_part = full_ans.split('Ref:')[0]
             st.markdown('**Answer:**')
             # st.write(ans_part)
@@ -198,10 +198,11 @@ def main():
                 #         p = c[dd:dd+len(ref_part)]
                 #         annotated_text(c[:dd], (ref_part, "REF"), c[dd+len(ref_part)+1:])
                 #         break
+                with st.expander('Related Contents', expanded=False):
+                    for idx, (score, doc) in enumerate(zip(scores, contents)):
+                        part = {idx+1: {'Score': round(score, 4), 'Content': doc}}
+                        st.write(part)
 
-            # with st.expander('Related Contents', expanded=False):
-            #     for idx, doc in related_contents.items():
-            #         st.write(doc)
 
         st.session_state.sidebar_state = 'auto'
         st.session_state.layout = 'wide'
